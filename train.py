@@ -28,7 +28,7 @@ def parse_args():
     # learning rate for initial training
     parser.add_argument('--init_lr', type=float, default=2e-4)
     parser.add_argument('--init_epoch', type=int, default=1)
-    parser.add_argument('--epoch', type=int, default=100)
+    parser.add_argument('--epoch', type=int, default=50)
     # adversial loss weight for generator
     parser.add_argument('--adv_weight_g', type=float, default=300.0)
     # adversial loss weight for discriminator
@@ -61,7 +61,7 @@ def train(args):
     optimizer_init = optim.Adam(
         G.parameters(), lr=args.init_lr, betas=(0.5, 0.999))
 
-    cur_epoch = 2
+    cur_epoch = 1
     while cur_epoch <= args.epoch+1:
         if cur_epoch <= args.init_epoch:  # pretrain G
             step = 0

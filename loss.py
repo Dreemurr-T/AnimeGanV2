@@ -51,9 +51,7 @@ def smooth_loss_g(args,generated):
     dh = generated[:,:,:-1,:]-generated[:,:,1:,:]
     dw = generated[:,:,:,:-1]-generated[:,:,:,1:]
     
-    size_dh = dh.numel()
-    size_dw = dw.numel()
-    return nn.MSELoss()(dh,zero_h) / size_dh + nn.MSELoss()(dw,zero_w) / size_dw
+    return nn.MSELoss()(dh,zero_h) + nn.MSELoss()(dw,zero_w)
 
 # loss for discriminator
 def discriminator_loss(anime_logit, anime_gray_logit, generated_logit, smooth_logit):
