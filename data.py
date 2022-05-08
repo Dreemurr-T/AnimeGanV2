@@ -32,7 +32,8 @@ class AnimeDataset(Dataset):
         if not os.path.exists(anime_dir):
             raise FileNotFoundError(f'Folder {anime_dir} does not exist')
 
-        self.bgr_mean = compute_mean(os.path.join(anime_dir, 'style'))
+        self.bgr_mean = compute_mean(os.path.join(anime_dir, 'style')) / 255
+
         self.img = {}
         self.train_photo = 'train_photo'
         self.style = f'{dataset}\style'
@@ -84,7 +85,7 @@ class AnimeDataset(Dataset):
         image_gray = np.stack([image_gray, image_gray, image_gray], axis=-1)
         image_gray = self._transform(image_gray)
 
-        image = self._transform(image, addMean=True)
+        image = self._transform(image, addMean=False)
 
         return image, image_gray
 
@@ -96,7 +97,8 @@ class AnimeDataset(Dataset):
         return image
 
     def _transform(self, img, addMean=False):
-        img = transforms.ToTensor()(img)
+        img = transforms.ToTensor()(img)    # [0,255] -> [0,1]
+        img = (img*2.0)-1 # [0,1] -> [-1,1]
         if addMean:
             for i in range(img.shape[0]):
                 img[i] += self.bgr_mean[i]

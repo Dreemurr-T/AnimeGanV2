@@ -61,7 +61,7 @@ def train(args):
     optimizer_init = optim.Adam(
         G.parameters(), lr=args.init_lr, betas=(0.5, 0.999))
 
-    cur_epoch = 1
+    cur_epoch = 2
     while cur_epoch <= args.epoch+1:
         if cur_epoch <= args.init_epoch:  # pretrain G
             step = 0
@@ -89,10 +89,15 @@ def train(args):
             for train_data in anime_loader:
                 start_time = time.time()
                 step += 1
-                real_img = train_data[0]
-                anime = train_data[1]
-                anime_gray = train_data[2]
-                anime_smooth = train_data[3]
+                real_img = train_data[0]    # [-1,1]
+                anime = train_data[1]   # [-1,1]
+                anime_gray = train_data[2]  # [-1,1]
+                anime_smooth = train_data[3]    # [-1,1]
+
+                # print(real_img)
+                # print(anime)
+                # print(anime_gray)
+                # print(anime_smooth)
 
                 anime_logit = D(anime)
                 anime_gray_logit = D(anime_gray)
@@ -100,6 +105,7 @@ def train(args):
 
                 # Train G
                 generated_img = G(real_img)
+                generated_copy = generated_img.clone().detach()
                 generated_logit = D(generated_img)
                 optimizer_g.zero_grad()
                 advloss_g = adv_loss_g(generated_logit)
@@ -120,13 +126,11 @@ def train(args):
                 G_smo_loss += smoothloss_g.item()
                 G_loss += total_loss_g.item()
 
-
                 # Train D
-                generated_img = G(real_img).detach()
-                generated_logit = D(generated_img)
+                generated_logit_copy = D(generated_copy)
                 optimizer_d.zero_grad()
                 loss_d = args.adv_weight_d*discriminator_loss(
-                    anime_logit, anime_gray_logit, generated_logit, smooth_logit)
+                    anime_logit, anime_gray_logit, generated_logit_copy, smooth_logit)
                 loss_d.backward()
                 optimizer_d.step()
                 D_loss += loss_d.item()
@@ -148,7 +152,7 @@ def train(args):
             writer.add_scalar('Loss/G_smo_loss',G_smo_loss, cur_epoch-1)
             writer.add_scalar('Loss/D_loss', D_loss, cur_epoch-1)
             
-        if cur_epoch % 10 == 0 or cur_epoch == args.epoch + 1:
+        if cur_epoch % 5 == 0 or cur_epoch == args.epoch + 1:
             save_checkpoint(G,cur_epoch,name="Generator",args=args)
             save_checkpoint(D,cur_epoch,name="Discriminator",args=args)
             print(f"Checkpoint save at epoch {cur_epoch}")

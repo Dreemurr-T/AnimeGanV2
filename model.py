@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.parametrizations import spectral_norm
 import torchvision.models as models
-
+import torchvision.transforms as transforms
 
 class Conv_Block(nn.Sequential):
     def __init__(self, input_channel, output_channel, kernel_size=3, stride=1, padding=1, groups=1, bias=False):
@@ -122,7 +122,7 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2, inplace=True)
         ]
 
-        for i in range(args.d_layers):
+        for i in range(1, args.d_layers):
             layers += [
                 nn.Conv2d(out_channel, channel*2, kernel_size=3,
                           stride=2, padding=1, bias=False),
@@ -154,17 +154,18 @@ class Discriminator(nn.Module):
         output = self.layers(input)
         return output
 
+
 class Vgg19(nn.Module):
     def __init__(self):
-        super(Vgg19,self).__init__()
+        super(Vgg19, self).__init__()
         vgg19 = models.vgg19(pretrained=True).features
         self.vgg = nn.Sequential()
         i = 0
         for layer in list(vgg19):
             if i > 25:
                 break
-            self.vgg.add_module(str(i),layer)
+            self.vgg.add_module(str(i), layer)
             i += 1
 
-    def forward(self,input):
+    def forward(self, input):
         return self.vgg(input)

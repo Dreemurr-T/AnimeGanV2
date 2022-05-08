@@ -31,7 +31,7 @@ def bgr2yuv(img:torch.Tensor):
     return torch.stack((y,u,v),-3)
 
 
-# Compute BGR mean value for a set of data
+# Compute BGR mean value for a set of data (no use)
 def compute_mean(data_path):
     if not os.path.exists(data_path):
         raise FileNotFoundError(f'Folder {data_path} does not exist')
