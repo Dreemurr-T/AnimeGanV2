@@ -6,4 +6,4 @@ The hyperparameters are tuned according to the official tensorflow implementatio
 Use `python train.py` to train AneimeGAN from scratch, will add resume function later<br>
 If your want to tune the hyperparameters, use `python train.py --help` for more details<br>
 - **Testing**<br>
-Still working on some problems, will be added later
+Still working on some problems, will be added later<br>
