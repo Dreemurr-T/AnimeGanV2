@@ -11,7 +11,7 @@ from loss import *
 import time
 from torch.utils.tensorboard import SummaryWriter
 
-# writer = SummaryWriter('./log')
+writer = SummaryWriter('./log')
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -36,9 +36,9 @@ def parse_args():
     # content loss weight(1.5 for Hayao, 2.0 for Paprika, 1.2 for Shinkai)
     parser.add_argument('--con_weight', type=float, default=1.5)
     # style loss weight(2.5 for Hayao, 0.6 for Paprika, 2.0 for Shinkai)
-    parser.add_argument('--style_weight', type=float, default=3)
+    parser.add_argument('--style_weight', type=float, default=2.5)
     # color loss weight(15. for Hayao, 50. for Paprika, 10. for Shinkai)
-    parser.add_argument('--color_weight', type=float, default=10)
+    parser.add_argument('--color_weight', type=float, default=15)
     # smooth loss weight(1. for Hayao, 0.1 for Paprika, 1. for Shinkai)
     parser.add_argument('--smo_weight', type=float, default=1.)
 
@@ -61,7 +61,7 @@ def train(args):
     optimizer_init = optim.Adam(
         G.parameters(), lr=args.init_lr, betas=(0.5, 0.999))
 
-    cur_epoch = 2
+    cur_epoch = 1
     while cur_epoch <= args.epoch+1:
         if cur_epoch <= args.init_epoch:  # pretrain G
             step = 0
@@ -95,10 +95,10 @@ def train(args):
                 anime_gray = train_data[2]  # [-1,1]
                 anime_smooth = train_data[3]    # [-1,1]
 
-                print(real_img.shape)
-                print(anime.shape)
-                print(anime_gray.shape)
-                print(anime_smooth.shape)
+                # print(real_img.shape)
+                # print(anime.shape)
+                # print(anime_gray.shape)
+                # print(anime_smooth.shape)
 
                 anime_logit = D(anime)
                 anime_gray_logit = D(anime_gray)
@@ -128,8 +128,6 @@ def train(args):
                 G_col_loss += colorloss_g.item()
                 G_loss += total_loss_g.item()
 
-                print(advloss_g.item(),contentloss_g.item(),styleloss_g.item(),smoothloss_g.item(),colorloss_g.item())
-
                 # Train D
                 generated_logit_copy = D(generated_copy)
                 optimizer_d.zero_grad()
@@ -139,30 +137,30 @@ def train(args):
                 optimizer_d.step()
                 D_loss += loss_d.item()
 
-        #         print("Epoch: %3d Step: %5d / %5d  time: %f s generator_loss: %.8f discriminator_loss: %.8f" % (cur_epoch, step,
-        #               len(anime_loader), time.time() - start_time, total_loss_g,loss_d))
+                print("Epoch: %3d Step: %5d / %5d  time: %f s generator_loss: %.8f discriminator_loss: %.8f" % (cur_epoch, step,
+                      len(anime_loader), time.time() - start_time, total_loss_g,loss_d))
                 
-        #     # save loss curve
-        #     G_loss /= len(anime_loader)
-        #     G_avd_loss /= len(anime_loader)
-        #     G_con_loss /= len(anime_loader)
-        #     G_sty_loss /= len(anime_loader)
-        #     G_col_loss /= len(anime_loader)
-        #     G_smo_loss /= len(anime_loader)
-        #     D_loss /= len(anime_loader)
-        #     writer.add_scalar('Loss/G_loss', G_loss, cur_epoch-1)
-        #     writer.add_scalar('Loss/G_avd_loss', G_avd_loss, cur_epoch-1)
-        #     writer.add_scalar('Loss/G_con_loss', G_con_loss, cur_epoch-1)
-        #     writer.add_scalar('Loss/G_sty_loss', G_sty_loss, cur_epoch-1)
-        #     writer.add_scalar('Loss/G_col_loss', G_col_loss, cur_epoch-1)
-        #     writer.add_scalar('Loss/G_smo_loss',G_smo_loss, cur_epoch-1)
-        #     writer.add_scalar('Loss/D_loss', D_loss, cur_epoch-1)
+            # save loss curve
+            G_loss /= len(anime_loader)
+            G_avd_loss /= len(anime_loader)
+            G_con_loss /= len(anime_loader)
+            G_sty_loss /= len(anime_loader)
+            G_col_loss /= len(anime_loader)
+            G_smo_loss /= len(anime_loader)
+            D_loss /= len(anime_loader)
+            writer.add_scalar('Loss/G_loss', G_loss, cur_epoch-1)
+            writer.add_scalar('Loss/G_avd_loss', G_avd_loss, cur_epoch-1)
+            writer.add_scalar('Loss/G_con_loss', G_con_loss, cur_epoch-1)
+            writer.add_scalar('Loss/G_sty_loss', G_sty_loss, cur_epoch-1)
+            writer.add_scalar('Loss/G_col_loss', G_col_loss, cur_epoch-1)
+            writer.add_scalar('Loss/G_smo_loss',G_smo_loss, cur_epoch-1)
+            writer.add_scalar('Loss/D_loss', D_loss, cur_epoch-1)
             
-        # if cur_epoch % 5 == 0 or cur_epoch == args.epoch + 1:
-        #     save_checkpoint(G,cur_epoch,name="Generator",args=args)
-        #     save_checkpoint(D,cur_epoch,name="Discriminator",args=args)
-        #     print(f"Checkpoint save at epoch {cur_epoch}")
-        # cur_epoch += 1
+        if cur_epoch % 5 == 0 or cur_epoch == args.epoch + 1:
+            save_checkpoint(G,cur_epoch,name="Generator",args=args)
+            save_checkpoint(D,cur_epoch,name="Discriminator",args=args)
+            print(f"Checkpoint save at epoch {cur_epoch}")
+        cur_epoch += 1
 
 
 if __name__ == '__main__':

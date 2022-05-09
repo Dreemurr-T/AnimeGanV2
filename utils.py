@@ -11,13 +11,13 @@ def gram_matrix(input):
     b, c, w, h = input.size()
     x = input.view(b,c, w*h)
     x_t = x.transpose(1,2)
-    G = x.bmm(x_t)
+    G = torch.matmul(x,x_t)
 
-    return G.div(b*w*h)
+    return G.div(c*w*h)
 
 # Convert BGR image to YUV according to https://en.wikipedia.org/wiki/YUV
 def bgr2yuv(img:torch.Tensor):
-    img = (img+1)/2 # [-1,1] -> [0,1] 
+    img = (img+1)/2     # [-1,1] -> [0,1] 
 
     b = img[...,0,:,:]
     g = img[...,1,:,:]

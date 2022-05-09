@@ -155,6 +155,7 @@ class Discriminator(nn.Module):
         output = self.layers(input)
         return output
 
+VGG_MEAN = [103.939, 116.779, 123.68]
 
 class Vgg19(nn.Module):
     def __init__(self):
@@ -173,13 +174,13 @@ class Vgg19(nn.Module):
     
     def normalize_input(self,input):
 
-        input = (input + 1) / 2
+        input = ((input + 1) / 2) * 255    # [-1,1] -> [0,255]
         b = input[...,0,:,:]
         g = input[...,1,:,:]
         r = input[...,2,:,:]
-        b = (b-0.406) / 0.225
-        g = (g-0.456) / 0.224
-        r = (r-0.485) / 0.229
+        b = b-VGG_MEAN[0]
+        g = g-VGG_MEAN[1]
+        r = r-VGG_MEAN[2]
 
         img = torch.stack((b,g,r),1)
         return img
