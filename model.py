@@ -5,6 +5,7 @@ from torch.nn.utils.parametrizations import spectral_norm
 import torchvision.models as models
 import torchvision.transforms as transforms
 
+
 class Conv_Block(nn.Sequential):
     def __init__(self, input_channel, output_channel, kernel_size=3, stride=1, padding=1, groups=1, bias=False):
         super(Conv_Block, self).__init__(
@@ -168,4 +169,17 @@ class Vgg19(nn.Module):
             i += 1
 
     def forward(self, input):
-        return self.vgg(input)
+        return self.vgg(self.normalize_input(input))
+    
+    def normalize_input(self,input):
+
+        input = (input + 1) / 2
+        b = input[...,0,:,:]
+        g = input[...,1,:,:]
+        r = input[...,2,:,:]
+        b = (b-0.406) / 0.225
+        g = (g-0.456) / 0.224
+        r = (r-0.485) / 0.229
+
+        img = torch.stack((b,g,r),1)
+        return img

@@ -10,7 +10,7 @@ def adv_loss_g(generated_logit):
 
 # content loss for generator
 def con_loss_g(vgg,real,generated):
-    real_feature_map = vgg(real)
+    real_feature_map = vgg(real).detach()
     fake_feature_map = vgg(generated)
 
     content_loss = nn.L1Loss()(fake_feature_map,real_feature_map)

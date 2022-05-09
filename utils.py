@@ -5,22 +5,20 @@ import numpy as np
 from tqdm import tqdm
 from torchvision import transforms
 
-# _rgb_to_yuv_kernel = torch.tensor([
-#     [0.299, -0.14714119, 0.61497538],
-#     [0.587, -0.28886916, -0.51496512],
-#     [0.114, 0.43601035, -0.10001026]
-# ]).float()
 
 # Calculate Gram Matrix
 def gram_matrix(input):
     b, c, w, h = input.size()
-    x = input.view(b*c, w*h)
-    G = torch.mm(x, x.T)
+    x = input.view(b,c, w*h)
+    x_t = x.transpose(1,2)
+    G = x.bmm(x_t)
 
-    return G.div(b*c*w*h)
+    return G.div(b*w*h)
 
 # Convert BGR image to YUV according to https://en.wikipedia.org/wiki/YUV
 def bgr2yuv(img:torch.Tensor):
+    img = (img+1)/2 # [-1,1] -> [0,1] 
+
     b = img[...,0,:,:]
     g = img[...,1,:,:]
     r = img[...,2,:,:]
