@@ -2,6 +2,5 @@ checkpoint/
 __pycache__/
 log/
 test_vgg.py
-dataset/
 result/
 checkpoint_old/
