@@ -1,0 +1,4 @@
+opencv-python
+tqdm
+adabelief-pytorch==0.2.1
+tensorboard

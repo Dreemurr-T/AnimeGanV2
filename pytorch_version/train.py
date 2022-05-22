@@ -3,6 +3,7 @@ import cv2
 import os
 import argparse
 import torch.optim as optim
+from adabelief_pytorch import AdaBelief
 from torch.utils.data import DataLoader
 from model import Generator, Discriminator, Vgg19
 from data import AnimeDataset
@@ -73,9 +74,16 @@ def train(args):
         print("Model loaded! Continue traning from epoch %d" %
               (args.start_epoch))
 
-    optimizer_g = optim.AdamW(G.parameters(), lr=args.g_lr, betas=(0.5, 0.999))
-    optimizer_d = optim.AdamW(D.parameters(), lr=args.d_lr, betas=(0.5, 0.999))
-    optimizer_init = optim.AdamW(
+    # AdamW
+    # optimizer_g = optim.AdamW(G.parameters(), lr=args.g_lr, betas=(0.5, 0.999))
+    # optimizer_d = optim.AdamW(D.parameters(), lr=args.d_lr, betas=(0.5, 0.999))
+    # optimizer_init = optim.AdamW(
+    #     G.parameters(), lr=args.init_lr, betas=(0.5, 0.999))
+
+    # AdamBelief
+    optimizer_g = AdaBelief(G.parameters(), lr=args.g_lr, betas=(0.5, 0.999))
+    optimizer_d = AdaBelief(D.parameters(), lr=args.d_lr, betas=(0.5, 0.999))
+    optimizer_init = AdaBelief(
         G.parameters(), lr=args.init_lr, betas=(0.5, 0.999))
 
     cur_epoch = args.start_epoch
