@@ -42,11 +42,14 @@ def parse_args():
     parser.add_argument('--color_weight', type=float, default=20)
     # smooth loss weight(1. for Hayao, 0.1 for Paprika, 1. for Shinkai)
     parser.add_argument('--smo_weight', type=float, default=1.)
+    # wgan-gp lambda
+    parser.add_argument('--ld', type=int, default=10)
     parser.add_argument('--checkpoint_dir', type=str,
                         default='checkpoint/Haoyao')
-    parser.add_argument('--checkpoint_name',type=str,default='epoch_25_batchsize_4.pth')
+    parser.add_argument('--checkpoint_name', type=str,
+                        default='epoch_25_batchsize_4.pth')
     parser.add_argument('--if_resume', type=bool, default=False)
-    parser.add_argument('--start_epoch',type=int,default=1)
+    parser.add_argument('--start_epoch', type=int, default=1)
 
     return parser.parse_args()
 
@@ -63,11 +66,12 @@ def train(args):
     Vgg = Vgg19().eval().to(device)
 
     if args.if_resume:
-        G_path = 'checkpoint/Hayao/Generator/epoch_84_batchsize_4.pth'
-        D_path = 'checkpoint/Hayao/Discriminator/epoch_84_batchsize_4.pth'
+        G_path = 'checkpoint/Hayao/Generator/epoch_159_batchsize_4.pth'
+        D_path = 'checkpoint/Hayao/Discriminator/epoch_159_batchsize_4.pth'
         G.load_state_dict(torch.load(G_path))
         D.load_state_dict(torch.load(D_path))
-        print("Model loaded! Continue traning from epoch %d"%(args.start_epoch))
+        print("Model loaded! Continue traning from epoch %d" %
+              (args.start_epoch))
 
     optimizer_g = optim.Adam(G.parameters(), lr=args.g_lr, betas=(0.5, 0.999))
     optimizer_d = optim.Adam(D.parameters(), lr=args.d_lr, betas=(0.5, 0.999))
@@ -108,15 +112,27 @@ def train(args):
                 anime_gray = train_data[2]  # [-1,1]
                 anime_smooth = train_data[3]    # [-1,1]
 
+                # Train D
+                optimizer_d.zero_grad()
                 anime_logit = D(anime)
                 anime_gray_logit = D(anime_gray)
                 smooth_logit = D(anime_smooth)
 
-                # Train G
                 generated_img = G(real_img)
-                generated_copy = generated_img.clone().detach()
                 generated_logit = D(generated_img)
+
+                loss_d = args.adv_weight_d*discriminator_loss(
+                    anime_logit, anime_gray_logit, generated_logit, smooth_logit) + args.ld * gradient_penalty(args,D,anime,generated_img)
+                loss_d.backward()
+                optimizer_d.step()
+                D_loss += loss_d.item()
+
+                # Train G
                 optimizer_g.zero_grad()
+
+                generated_img = G(real_img)
+                generated_logit = D(generated_img)
+
                 advloss_g = adv_loss_g(generated_logit)
                 contentloss_g = con_loss_g(Vgg, real_img, generated_img)
                 styleloss_g = gs_loss_g(Vgg, generated_img, anime_gray)
@@ -129,21 +145,12 @@ def train(args):
                 total_loss_g.backward()
                 optimizer_g.step()
 
-                G_avd_loss += advloss_g.item()
+                G_avd_loss += (-advloss_g.item())
                 G_con_loss += contentloss_g.item()
                 G_sty_loss += styleloss_g.item()
                 G_smo_loss += smoothloss_g.item()
                 G_col_loss += colorloss_g.item()
                 G_loss += total_loss_g.item()
-
-                # Train D
-                generated_logit_copy = D(generated_copy)
-                optimizer_d.zero_grad()
-                loss_d = args.adv_weight_d*discriminator_loss(
-                    anime_logit, anime_gray_logit, generated_logit_copy, smooth_logit)
-                loss_d.backward()
-                optimizer_d.step()
-                D_loss += loss_d.item()
 
                 print("Epoch: %3d Step: %5d / %5d  time: %f s generator_loss: %.8f discriminator_loss: %.8f" % (cur_epoch, step,
                       len(anime_loader), time.time() - start_time, total_loss_g, loss_d))

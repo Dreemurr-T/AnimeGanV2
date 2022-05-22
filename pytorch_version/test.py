@@ -11,9 +11,9 @@ from utils import adjust_brightness
 def parse_args():
     parser = argparse.ArgumentParser(description="AnimeGANV2")
 
-    parser.add_argument('--checkpoint_dir',type=str,default='checkpoint/Hayao/Generator/epoch_159_batchsize_4.pth')
-    parser.add_argument('--photo_dir',type=str,default='dataset/samples/inputs/')
-    parser.add_argument('--save_dir',type=str,default='result/Hayao/samples')
+    parser.add_argument('--checkpoint_dir',type=str,default='checkpoint/Hayao/Generator/epoch_199_batchsize_4.pth')
+    parser.add_argument('--photo_dir',type=str,default='dataset/test/HR_photo')
+    parser.add_argument('--save_dir',type=str,default='result/Hayao/HR_photo')
     parser.add_argument('--device',type=str,default='cuda')
     parser.add_argument('--adjust_brightness',type=bool,default=True)
 
