@@ -23,11 +23,11 @@ def parse_args():
                         default=3)    # Number of D layers
     parser.add_argument('--device', type=str, default='cuda')
     # learning rate for generator
-    parser.add_argument('--g_lr', type=float, default=8e-5)
+    parser.add_argument('--g_lr', type=float, default=2e-4)
     # learning rate for disriminator
-    parser.add_argument('--d_lr', type=float, default=16e-5)
+    parser.add_argument('--d_lr', type=float, default=4e-4)
     # learning rate for initial training
-    parser.add_argument('--init_lr', type=float, default=2e-4)
+    parser.add_argument('--init_lr', type=float, default=8e-4)
     parser.add_argument('--init_epoch', type=int, default=10)
     parser.add_argument('--epoch', type=int, default=150)
     # adversial loss weight for generator
@@ -35,11 +35,11 @@ def parse_args():
     # adversial loss weight for discriminator
     parser.add_argument('--adv_weight_d', type=float, default=200.0)
     # content loss weight(1.5 for Hayao, 2.0 for Paprika, 1.2 for Shinkai)
-    parser.add_argument('--con_weight', type=float, default=2)
+    parser.add_argument('--con_weight', type=float, default=1.5)
     # style loss weight(2.5 for Hayao, 0.6 for Paprika, 2.0 for Shinkai)
     parser.add_argument('--style_weight', type=float, default=3)
     # color loss weight(15. for Hayao, 50. for Paprika, 10. for Shinkai)
-    parser.add_argument('--color_weight', type=float, default=20)
+    parser.add_argument('--color_weight', type=float, default=15)
     # smooth loss weight(1. for Hayao, 0.1 for Paprika, 1. for Shinkai)
     parser.add_argument('--smo_weight', type=float, default=1.)
     # wgan-gp lambda
@@ -73,9 +73,9 @@ def train(args):
         print("Model loaded! Continue traning from epoch %d" %
               (args.start_epoch))
 
-    optimizer_g = optim.Adam(G.parameters(), lr=args.g_lr, betas=(0.5, 0.999))
-    optimizer_d = optim.Adam(D.parameters(), lr=args.d_lr, betas=(0.5, 0.999))
-    optimizer_init = optim.Adam(
+    optimizer_g = optim.AdamW(G.parameters(), lr=args.g_lr, betas=(0.5, 0.999))
+    optimizer_d = optim.AdamW(D.parameters(), lr=args.d_lr, betas=(0.5, 0.999))
+    optimizer_init = optim.AdamW(
         G.parameters(), lr=args.init_lr, betas=(0.5, 0.999))
 
     cur_epoch = args.start_epoch
