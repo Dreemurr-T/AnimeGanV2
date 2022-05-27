@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.nn.utils.parametrizations import spectral_norm
 import torchvision.models as models
 import torchvision.transforms as transforms
-from utils import init_D_weights,init_G_weights
+from utils import init_D_weights, init_G_weights
 
 
 class Conv_Block(nn.Sequential):
@@ -160,7 +160,10 @@ class Discriminator(nn.Module):
         output = self.layers(input)
         return output
 
-IMG_MEAN = [103.939, 116.779, 123.68]
+
+IMG_MEAN = [123.68, 116.779, 103.939]
+IMG_STD = [58.40, 57.12, 57.38]
+
 
 class Vgg19(nn.Module):
     def __init__(self):
@@ -176,16 +179,17 @@ class Vgg19(nn.Module):
 
     def forward(self, input):
         return self.vgg(self.normalize_input(input))
-    
-    def normalize_input(self,input):
+        # return self.vgg(input)
+
+    def normalize_input(self, input):
 
         input = ((input + 1) / 2) * 255    # [-1,1] -> [0,255]
-        b = input[...,0,:,:]
-        g = input[...,1,:,:]
-        r = input[...,2,:,:]
-        b = b-IMG_MEAN[0]
+        r = input[..., 0, :, :]
+        g = input[..., 1, :, :]
+        b = input[..., 2, :, :]
+        r = r-IMG_MEAN[0]
         g = g-IMG_MEAN[1]
-        r = r-IMG_MEAN[2]
+        b = b-IMG_MEAN[2]
 
-        img = torch.stack((b,g,r),1)
+        img = torch.stack((r, g, b), 1)
         return img
