@@ -17,7 +17,7 @@ writer = SummaryWriter('./log')
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='Paprika')
+    parser.add_argument('--dataset', type=str, default='anime')
     parser.add_argument('--data_dir', type=str, default='dataset')
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--d_layers', type=int,
@@ -29,20 +29,20 @@ def parse_args():
     parser.add_argument('--d_lr', type=float, default=1e-4)
     # learning rate for initial training
     parser.add_argument('--init_lr', type=float, default=2e-4)
-    parser.add_argument('--init_epoch', type=int, default=5)
+    parser.add_argument('--init_epoch', type=int, default=10)
     parser.add_argument('--gan_type', type=str, default='lsgan',
                         help='[gan / lsgan / wgan-gp / GR / wgan]')
-    parser.add_argument('--epoch', type=int, default=100)
+    parser.add_argument('--epoch', type=int, default=200)
     # training time G:D = 1:times
-    parser.add_argument('--times', type=int, default=3)
+    parser.add_argument('--times', type=int, default=1)
     # adversial loss weight for generator
-    parser.add_argument('--adv_weight_g', type=float, default=100)
+    parser.add_argument('--adv_weight_g', type=float, default=0)
     # adversial loss weight for discriminator
-    parser.add_argument('--adv_weight_d', type=float, default=100)
+    parser.add_argument('--adv_weight_d', type=float, default=50)
     # content loss weight(1.5 for Hayao, 2.0 for Paprika, 1.2 for Shinkai)
-    parser.add_argument('--con_weight', type=float, default=150)
+    parser.add_argument('--con_weight', type=float, default=1)
     # style loss weight(2.5 for Hayao, 0.6 for Paprika, 2.0 for Shinkai)
-    parser.add_argument('--style_weight', type=float, default=3)
+    parser.add_argument('--style_weight', type=float, default=4)
     # color loss weight(15. for Hayao, 50. for Paprika, 10. for Shinkai)
     # parser.add_argument('--color_weight', type=float, default=0)
     # smooth loss weight(1. for Hayao, 0.1 for Paprika, 1. for Shinkai)
@@ -110,7 +110,7 @@ def train(args):
                 generated_img = G(real_img)
 
                 init_loss = args.con_weight * \
-                    con_loss_g(real_img, generated_img)
+                    con_loss_g(Vgg, real_img, generated_img)
                 init_loss.backward()
                 optimizer_init.step()
                 print("Epoch: %3d Step: %5d / %5d  time: %f s init_loss: %.8f" % (cur_epoch, step,
@@ -120,7 +120,6 @@ def train(args):
             G_loss = 0.0
             G_avd_loss = 0.0
             G_con_loss = 0.0
-            G_col_loss = 0.0
             G_sty_loss = 0.0
             G_smo_loss = 0.0
 
@@ -169,10 +168,13 @@ def train(args):
                 generated_logit = D(generated_img)
 
                 advloss_g = adv_loss_g(args, generated_logit)
-                contentloss_g = con_loss_g(real_img, generated_img)
+                contentloss_g = con_loss_g(Vgg, real_img, generated_img)
                 styleloss_g = gs_loss_g(Vgg, generated_img, anime_gray)
                 # colorloss_g = color_loss_g(real_img, generated_img)
                 smoothloss_g = smooth_loss_g(args, generated_img)
+
+                # print(styleloss_g)
+                # print(contentloss_g)
 
                 total_loss_g = args.adv_weight_g*advloss_g + args.con_weight*contentloss_g + \
                     args.style_weight*styleloss_g + args.smo_weight*smoothloss_g # dispose color loss

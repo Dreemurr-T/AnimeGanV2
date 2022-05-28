@@ -36,7 +36,7 @@ class AnimeDataset(Dataset):
         # self.bgr_mean = compute_mean(os.path.join(anime_dir, 'style')) / 255
 
         self.img = {}
-        self.train_photo = 'face_train'
+        self.train_photo = 'debug'
         self.style = f'{dataset}/style'
         self.smooth = f'{dataset}/smooth'
 

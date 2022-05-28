@@ -16,20 +16,21 @@ def adv_loss_g(args, generated_logit):
         adv_loss = torch.mean(nn.BCEWithLogitsLoss()(generated_logit,torch.ones_like(generated_logit)))
     elif args.gan_type == 'lsgan':
         adv_loss = torch.mean(torch.square(1-generated_logit))
-    # print(adv_loss.item())
+    # print(adv_loss)
     return adv_loss
 
 # content loss for generator
-def con_loss_g(real, generated):
+def con_loss_g(vgg, real, generated):
 
-    # real_feature_map = vgg(real).detach()
-    # fake_feature_map = vgg(generated)
-
-    # content_loss = nn.L1Loss()(fake_feature_map, real_feature_map)
     real = real.detach()
 
-    content_loss = loss_fn_vgg(generated, real).mean()
-    # print(content_loss)
+    real_feature_map = vgg(real).detach()
+    fake_feature_map = vgg(generated)
+
+    lpips_loss = loss_fn_vgg.forward(generated, real).mean()
+    con_loss = nn.L1Loss()(fake_feature_map, real_feature_map)
+    content_loss = con_loss + 200 * lpips_loss
+    print(content_loss)
     return content_loss
 
 #  grayscale style loss for generator
@@ -40,8 +41,8 @@ def gs_loss_g(vgg, generated, anime_gray):
     generated_gram = gram_matrix(generated_feature_map)
     gray_gram = gram_matrix(gray_feature_map)
 
-    style_loss = nn.L1Loss()(generated_gram, gray_gram)
-    # print(style_loss)
+    style_loss = nn.L1Loss()(generated_gram, gray_gram) # L1 -> MSE
+    print(style_loss)
     return style_loss
 
 # color loss for generator
@@ -100,7 +101,7 @@ def discriminator_loss(args, anime_logit, anime_gray_logit, generated_logit, smo
     # for Hayao : 1.2, 1.2, 1.2, 0.8
     # for Paprika : 1.0, 1.0, 1.0, 0.005
     # for Shinkai: 1.7, 1.7, 1.7, 1.0
-    loss = real_loss + fake_loss + gray_loss + 0.8 * real_blur_loss
+    loss = real_loss + fake_loss + gray_loss + 0.005 * real_blur_loss
     return loss
 
 # def discriminator_loss(args, anime_logit, generated_logit):

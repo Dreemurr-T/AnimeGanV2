@@ -12,9 +12,9 @@ from utils import adjust_brightness
 def parse_args():
     parser = argparse.ArgumentParser(description="AnimeGANV2")
 
-    parser.add_argument('--checkpoint_dir',type=str,default='checkpoint/Paprika/Generator/epoch_20_gan_lsgan.pth')
-    parser.add_argument('--photo_dir',type=str,default='dataset/test/face_test')
-    parser.add_argument('--save_dir',type=str,default='result/Hayao/face_test')
+    parser.add_argument('--checkpoint_dir',type=str,default='checkpoint/anime/Generator/epoch_200_gan_lsgan.pth')
+    parser.add_argument('--photo_dir',type=str,default='dataset/debug')
+    parser.add_argument('--save_dir',type=str,default='result/anime/debug')
     parser.add_argument('--device',type=str,default='cuda')
     parser.add_argument('--adjust_brightness',type=bool,default=False)
 
@@ -39,7 +39,7 @@ def test(args):
         photo_copy = photo_copy * 2 - 1
         generated_photo = G(photo_copy)
         save_photo = generated_photo.squeeze(0).detach().cpu()
-        save_photo = (save_photo + 1) / 2
+        save_photo = ((save_photo + 1) / 2).clip(0,1)
         save_photo = transforms.ToPILImage()(save_photo)
         if args.adjust_brightness:
             save_path = adjust_brightness(save_photo,photo)
