@@ -30,7 +30,7 @@ You can refer to https://cg.cs.tsinghua.edu.cn/jittor/tutorial/ for more details
 
 ## Training
 
-Dataset is acquired from [Link](https://github.com/TachibanaYoshino/AnimeGAN/releases/tag/dataset-1)
+Dataset is acquired from [Link](https://github.com/TachibanaYoshino/AnimeGAN/releases/tag/dataset-1)(the same as the dataset in pytorch version).
 The hyperparameters are tuned according to the official tensorflow implementation of [AnimeGANV2](https://github.com/TachibanaYoshino/AnimeGANv2)
 Use `python train.py` to train AneimeGAN.
 
