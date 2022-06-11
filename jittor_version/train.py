@@ -15,17 +15,16 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='Hayao')
     parser.add_argument('--data_dir', type=str, default='dataset')
-    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--d_layers', type=int,
                         default=3)    # Number of D layers
-    parser.add_argument('--device', type=str, default='cuda')
     # learning rate for generator
     parser.add_argument('--g_lr', type=float, default=8e-5)
     # learning rate for disriminator
     parser.add_argument('--d_lr', type=float, default=16e-5)
     # learning rate for initial training
     parser.add_argument('--init_lr', type=float, default=2e-4)
-    parser.add_argument('--init_epoch', type=int, default=10)
+    parser.add_argument('--init_epoch', type=int, default=-1)
     parser.add_argument('--epoch', type=int, default=150)
     # adversial loss weight for generator
     parser.add_argument('--adv_weight_g', type=float, default=200.0)
@@ -41,8 +40,7 @@ def parse_args():
     parser.add_argument('--smo_weight', type=float, default=1.)
     parser.add_argument('--checkpoint_dir', type=str,
                         default='checkpoint/Haoyao')
-    parser.add_argument('--checkpoint_name',type=str,default='epoch_25_batchsize_4.pth')
-    parser.add_argument('--if_resume', type=bool, default=False)
+    parser.add_argument('--if_resume', type=bool, default=True)
     parser.add_argument('--start_epoch',type=int,default=1)
 
     return parser.parse_args()
@@ -55,8 +53,8 @@ def train(args):
     Vgg = Vgg19()
 
     if args.if_resume:
-        G_path = 'checkpoint/Hayao/Generator/epoch_84_batchsize_4.pth'
-        D_path = 'checkpoint/Hayao/Discriminator/epoch_84_batchsize_4.pth'
+        G_path = 'checkpoint/Hayao/Generator/epoch_59_batchsize_2.pkl'
+        D_path = 'checkpoint/Hayao/Discriminator/epoch_59_batchsize_2.pkl'
         G.load_state_dict(jt.load(G_path))
         D.load_state_dict(jt.load(D_path))
         print("Model loaded! Continue traning from epoch %d"%(args.start_epoch))
@@ -66,27 +64,25 @@ def train(args):
     optimizer_init = nn.Adam(
         G.parameters(), lr=args.init_lr, betas=(0.5, 0.999))
 
-    cur_epoch = args.start_epoch + 20
+    cur_epoch = args.start_epoch
     while cur_epoch <= args.epoch+args.init_epoch:
         if cur_epoch <= args.init_epoch:  # pretrain G
             step = 0
             for train_data in anime_loader:
                 start_time = time.time()
                 step += 1
-                # optimizer_init.zero_grad()
+                #optimizer_init.zero_grad()
                 real_img = train_data[0]
                 # real_img = jt.array(real_img)
                 # print(real_img.shape)
                 # print(real_img)
-                # print(real_img.shape)
                 generated_img = G(real_img)
-                # print(generated_img.shape)
                 # print(generated_img)
                 init_loss = args.con_weight * con_loss_g(Vgg, real_img, generated_img)
                 # print(init_loss[0])
-                # init_loss.backward()
+                #init_loss.backward()
                 optimizer_init.step(init_loss)
-                print("Epoch: %3d Step: %5d / %5d  time: %f s init_loss: %.8f" % (cur_epoch, step, len(anime_loader), time.time() - start_time, init_loss))
+            print("Epoch: %3d  time: %f s init_loss: %.8f" % (cur_epoch, time.time() - start_time, init_loss))
         else:  # train AnimeGAN
             step = 0
             """
@@ -112,8 +108,9 @@ def train(args):
 
                 # Train G
                 generated_img = G(real_img)
-                generated_copy = generated_img.clone().detach()
+                generated_copy = generated_img.clone()
                 generated_logit = D(generated_img)
+                print(generated_logit)
                 # optimizer_g.zero_grad()
                 advloss_g = adv_loss_g(generated_logit)
                 contentloss_g = con_loss_g(Vgg, real_img, generated_img)

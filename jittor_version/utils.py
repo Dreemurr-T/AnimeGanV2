@@ -39,18 +39,22 @@ def save_checkpoint(model,epoch,name,args):
     save_dir = f"checkpoint/{args.dataset}/{name}"
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
-    save_path = os.path.join(save_dir,f"epoch_{epoch}_batchsize_{args.batch_size}.pth")
+    save_path = os.path.join(save_dir,f"epoch_{epoch}_batchsize_{args.batch_size}.pkl")
     jt.save(model.state_dict(),save_path)
 
 def init_G_weights(net):
     for m in net.modules():
         if isinstance(m,nn.Conv2d):
-            nn.init.kaiming_normal_(jt.array(m.weight.data), a=0.2)
+            tmp = jt.array(m.weight.data)
+            nn.init.kaiming_normal_(tmp, a=0.2)
+            m.weight.data = tmp.numpy()
 
 def init_D_weights(net):
     for m in net.modules():
         if isinstance(m,nn.Conv2d):
-            jt.normal(jt.array(m.weight.data),std=0.02)
+            tmp = jt.array(m.weight.data)
+            jt.normal(tmp,std=0.02)
+            m.weight.data = tmp.numpy()
 
 def calculate_brightness(img):
     B = img[:,:,0].mean()

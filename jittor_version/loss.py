@@ -12,7 +12,6 @@ def adv_loss_g(generated_logit):
 
 # content loss for generator
 def con_loss_g(vgg,real,generated):
-    vgg.eval()
     real_feature_map = vgg(real)
     fake_feature_map = vgg(generated)
 
@@ -44,7 +43,6 @@ def color_loss_g(real,generated):
     real_v = real_yuv[:,2,:,:]
     generated_v = generated_yuv[:,2,:,:]
 
-    # color_loss = nn.L1Loss()(generated_y,real_y) + nn.HuberLoss()(generated_u,real_u) + nn.HuberLoss()(generated_v,real_v)
     color_loss = nn.L1Loss()(generated_y,real_y) + nn.smooth_l1_loss(generated_u,real_u) + nn.smooth_l1_loss(generated_v,real_v)
     return color_loss
 

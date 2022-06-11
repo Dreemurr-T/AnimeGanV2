@@ -80,4 +80,4 @@ class AnimeDataset(Dataset):
         img = np.transpose(img,(2,0,1))
         # img = np.float32(img) * np.float32(1/255.0)
         img = ((img * 2.0) - 1)
-        return img
+        return jt.array(img)
