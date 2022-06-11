@@ -40,4 +40,4 @@ If your want to tune the hyperparameters, use `python train.py --help` for more 
 
 Use `python test.py` to generate anime style photos.
 
-If your want to tune the hyperparameters, use `python train.py --help` for more details.
+If your want to tune the hyperparameters, use `python test.py --help` for more details.
